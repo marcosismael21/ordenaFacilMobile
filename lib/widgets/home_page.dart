@@ -108,7 +108,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                // Información del tipo de platillo
                 Expanded(
                   flex: 2,
                   child: Padding(
