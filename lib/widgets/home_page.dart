@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../models/platillo.dart';
-import '../models/promocion.dart';
 import '../models/tipo_platillo.dart';
-import '../services/platillo_service.dart';
-import '../services/promocion_service.dart';
 import '../services/tipo_platillo_service.dart';
+import 'MenuPlatillosPage.dart';
 import 'navigation/pedidos_page.dart';
 import 'navigation/perfil_page.dart';
-import 'platillo_detail_page.dart';
 import 'cart_page.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
@@ -22,13 +18,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  int _selectedMenuIndex = 0;
-  final PageController _pageController = PageController();
   final TipoPlatilloService _tipoPlatilloService = TipoPlatilloService();
-  final PlatilloService _platilloService = PlatilloService();
-  List<Platillo> _platillos = [];
   List<TipoPlatillo> _tiposPlatillo = [];
-  Timer? _timer;
 
   Future<void> _loadTiposPlatillo() async {
     final tiposPlatillo = await _tipoPlatilloService.getAllTipoPlatillo();
@@ -37,20 +28,11 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _loadPlatillos() async {
-    final platillos = await _platilloService.getAllPlatillos();
-    setState(() {
-      _platillos = platillos;
-    });
-  }
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
       if (index == 0) {
-        _loadPlatillos();
-      } else {
-        _timer?.cancel();
+        _loadTiposPlatillo();
       }
     });
   }
@@ -60,130 +42,134 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     if (_selectedIndex == 0) {
       _loadTiposPlatillo();
-      _loadPlatillos();
     }
   }
 
-  Widget _buildMenuContent() {
+  Widget _buildMenuCards() {
     if (_tiposPlatillo.isEmpty) {
-      return const Center(child: Text('No hay menús disponibles'));
+      return const Center(child: CircularProgressIndicator());
     }
 
-    // Filtrar platillos según el tipo seleccionado
-    final platillosFiltrados =
-        _platillos
-            .where(
-              (platillo) =>
-                  platillo.tipoPlatilloId ==
-                  _tiposPlatillo[_selectedMenuIndex].id,
-            )
-            .toList();
-
-    if (platillosFiltrados.isEmpty) {
-      return const Center(
-        child: Text('No hay platillos disponibles en este menú'),
-      );
-    }
-
-    return ListView.builder(
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: platillosFiltrados.length,
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: _tiposPlatillo.length,
       itemBuilder: (context, index) {
-        final platillo = platillosFiltrados[index];
+        final tipoPlatillo = _tiposPlatillo[index];
         return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: InkWell(
             onTap: () {
-              // Navegar a la página de detalle del platillo
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => PlatilloDetailPage(platillo: platillo),
+                  builder:
+                      (context) =>
+                          MenuPlatillosPage(tipoPlatillo: tipoPlatillo),
                 ),
               );
             },
-            child: SizedBox(
-              height: 120,
-              child: Row(
-                children: [
-                  // Imagen del platillo
-                  SizedBox(
-                    width: 120,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(4),
+            borderRadius: BorderRadius.circular(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Imagen del tipo de platillo
+                Expanded(
+                  flex: 3,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.blue.withOpacity(0.8),
+                            Colors.blue.withOpacity(0.6),
+                          ],
+                        ),
                       ),
-                      child: Image.network(
-                        platillo.imageUrl,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.error),
-                          );
-                        },
+                      child: Icon(
+                        _getIconForTipoPlatillo(tipoPlatillo.descripcion),
+                        size: 60,
+                        color: Colors.white,
                       ),
                     ),
                   ),
-                  // Información del platillo
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            platillo.nombre,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
+                ),
+                // Información del tipo de platillo
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          tipoPlatillo.descripcion,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            platillo.descripcion,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.grey[600]),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'L.${platillo.precio.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Ver menú',
+                            style: TextStyle(
                               color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  // Flecha indicadora
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(Icons.chevron_right, color: Colors.grey),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
       },
     );
+  }
+
+  // Función auxiliar para obtener iconos según el tipo de platillo
+  IconData _getIconForTipoPlatillo(String descripcion) {
+    final desc = descripcion.toLowerCase();
+    if (desc.contains('desayuno')) return Icons.breakfast_dining;
+    if (desc.contains('almuerzo') || desc.contains('comida'))
+      return Icons.lunch_dining;
+    if (desc.contains('cena')) return Icons.dinner_dining;
+    if (desc.contains('postre')) return Icons.cake;
+    if (desc.contains('bebida')) return Icons.local_drink;
+    if (desc.contains('ensalada')) return Icons.eco;
+    if (desc.contains('pizza')) return Icons.local_pizza;
+    if (desc.contains('hamburguesa')) return Icons.lunch_dining;
+    return Icons.restaurant_menu;
   }
 
   Widget _buildBody() {
@@ -202,86 +188,31 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título de los menús
+          // Título principal
           const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Nuestros Menús',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¡Bienvenido!',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Elige tu menú favorito',
+                  style: TextStyle(fontSize: 28, color: Colors.grey),
+                ),
+              ],
             ),
           ),
 
-          // Menús dinámicos
-          if (_tiposPlatillo.isEmpty)
-            const Center(child: CircularProgressIndicator())
-          else
-            Column(
-              children: [
-                // Botones de navegación de menús
-                SizedBox(
-                  height: 45,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                        _tiposPlatillo.length,
-                        (index) => SizedBox(
-                          width:
-                              MediaQuery.of(context).size.width /
-                              3, // Ancho fijo para cada botón
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color:
-                                      _selectedMenuIndex == index
-                                          ? Colors.blue
-                                          : Colors.grey[300]!,
-                                  width: 2.0,
-                                ),
-                              ),
-                              color: Colors.white,
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedMenuIndex = index;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12.0,
-                                  ),
-                                  child: Text(
-                                    _tiposPlatillo[index].descripcion,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color:
-                                          _selectedMenuIndex == index
-                                              ? Colors.blue
-                                              : Colors.black87,
-                                      fontWeight:
-                                          _selectedMenuIndex == index
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Contenido del menú seleccionado
-                _buildMenuContent(),
-              ],
-            ),
+          // Cartas de menú
+          _buildMenuCards(),
         ],
       ),
     );
@@ -289,8 +220,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -300,7 +229,8 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ordena Fácil'),
+        title: const Text('Ordena Fácil',
+        style: TextStyle(fontSize: 25)),
         automaticallyImplyLeading: false,
         actions: [
           // Botón de carrito con contador
@@ -308,7 +238,8 @@ class _HomePageState extends State<HomePage> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_cart),
+                icon: const Icon(Icons.shopping_cart,
+                size: 35,),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => const CartPage()),
@@ -343,6 +274,9 @@ class _HomePageState extends State<HomePage> {
       body: _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
+        iconSize: 35,
+        selectedFontSize: 25,
+        unselectedFontSize: 20,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
@@ -355,6 +289,8 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
       ),
     );
   }
