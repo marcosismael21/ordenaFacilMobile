@@ -24,38 +24,11 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   int _selectedMenuIndex = 0;
   final PageController _pageController = PageController();
-  final PromocionService _promocionService = PromocionService();
   final TipoPlatilloService _tipoPlatilloService = TipoPlatilloService();
   final PlatilloService _platilloService = PlatilloService();
   List<Platillo> _platillos = [];
-  List<Promocion> _promociones = [];
   List<TipoPlatillo> _tiposPlatillo = [];
-  int _currentPage = 0;
   Timer? _timer;
-
-  void _startAutoScroll() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      if (_promociones.isNotEmpty) {
-        if (_currentPage < _promociones.length - 1) {
-          _currentPage++;
-        } else {
-          _currentPage = 0;
-        }
-        _pageController.animateToPage(
-          _currentPage,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeIn,
-        );
-      }
-    });
-  }
-
-  Future<void> _loadPromociones() async {
-    final promociones = await _promocionService.getAllPromociones();
-    setState(() {
-      _promociones = promociones;
-    });
-  }
 
   Future<void> _loadTiposPlatillo() async {
     final tiposPlatillo = await _tipoPlatilloService.getAllTipoPlatillo();
@@ -75,9 +48,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedIndex = index;
       if (index == 0) {
-        _loadPromociones();
         _loadPlatillos();
-        _startAutoScroll();
       } else {
         _timer?.cancel();
       }
@@ -88,10 +59,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     if (_selectedIndex == 0) {
-      _loadPromociones();
       _loadTiposPlatillo();
       _loadPlatillos();
-      _startAutoScroll();
     }
   }
 
@@ -219,7 +188,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildBody() {
     if (_selectedIndex != 0) {
-      switch (_selectedIndex) {      
+      switch (_selectedIndex) {
         case 1:
           return const PedidosPage();
         case 2:
@@ -233,83 +202,6 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Carrusel de promociones
-          SizedBox(
-            height: 200,
-            child:
-                _promociones.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: (int page) {
-                        setState(() {
-                          _currentPage = page;
-                        });
-                      },
-                      itemCount: _promociones.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.all(10),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: Image.network(
-                              _promociones[index].urlImage,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (
-                                context,
-                                child,
-                                loadingProgress,
-                              ) {
-                                if (loadingProgress == null) return child;
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    value:
-                                        loadingProgress.expectedTotalBytes !=
-                                                null
-                                            ? loadingProgress
-                                                    .cumulativeBytesLoaded /
-                                                loadingProgress
-                                                    .expectedTotalBytes!
-                                            : null,
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.grey[300],
-                                  child: const Center(
-                                    child: Text('Error al cargar la imagen'),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-          ),
-
-          // Indicadores de página del carrusel
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children:
-                _promociones.map((promocion) {
-                  int index = _promociones.indexOf(promocion);
-                  return Container(
-                    width: 8.0,
-                    height: 8.0,
-                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color:
-                          _currentPage == index
-                              ? Colors.blue
-                              : Colors.blue.withOpacity(0.4),
-                    ),
-                  );
-                }).toList(),
-          ),
-
           // Título de los menús
           const Padding(
             padding: EdgeInsets.all(16.0),
@@ -452,7 +344,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),          
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long),
             label: 'Pedidos',
