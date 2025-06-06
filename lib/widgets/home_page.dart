@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../models/tipo_platillo.dart';
 import '../services/tipo_platillo_service.dart';
+import '../theme/app_theme.dart';
 import 'MenuPlatillosPage.dart';
 import 'navigation/pedidos_page.dart';
 import 'navigation/perfil_page.dart';
@@ -65,18 +66,14 @@ class _HomePageState extends State<HomePage> {
         final tipoPlatillo = _tiposPlatillo[index];
         return Card(
           elevation: 8,
-          shadowColor: Colors.black.withOpacity(0.2),
+          shadowColor: AppColors.grey300,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.white, Colors.blue.withOpacity(0.05)],
-              ),
+              borderRadius: BorderRadius.circular(16),
+              gradient: AppColors.cardGradient,
             ),
             child: InkWell(
               onTap: () {
@@ -88,7 +85,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -97,23 +94,16 @@ class _HomePageState extends State<HomePage> {
                     flex: 3,
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
+                        top: Radius.circular(16),
                       ),
                       child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.blue.withOpacity(0.8),
-                              Colors.blue.withOpacity(0.6),
-                            ],
-                          ),
+                        decoration: const BoxDecoration(
+                          gradient: AppColors.primaryGradient,
                         ),
                         child: Icon(
                           _getIconForTipoPlatillo(tipoPlatillo.descripcion),
                           size: 60,
-                          color: Colors.white,
+                          color: AppColors.onPrimary,
                         ),
                       ),
                     ),
@@ -131,6 +121,7 @@ class _HomePageState extends State<HomePage> {
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
+                              color: AppColors.onSurface,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -139,27 +130,27 @@ class _HomePageState extends State<HomePage> {
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
-                              vertical: 4,
+                              vertical: 6,
                             ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.blue.withOpacity(0.1),
-                                  Colors.blue.withOpacity(0.05),
+                                  AppColors.accent,
+                                  AppColors.accentLight,
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: Colors.blue.withOpacity(0.3),
+                                color: AppColors.primary.withOpacity(0.3),
                                 width: 1,
                               ),
                             ),
                             child: const Text(
                               'Ver menú',
                               style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
+                                color: AppColors.primary,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -211,14 +202,14 @@ class _HomePageState extends State<HomePage> {
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(16.0),
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.surface.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
+                  color: AppColors.grey300.withOpacity(0.5),
+                  blurRadius: 15,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -228,22 +219,25 @@ class _HomePageState extends State<HomePage> {
               children: [
                 ShaderMask(
                   shaderCallback:
-                      (bounds) => LinearGradient(
-                        colors: [Colors.blue, Colors.blue.shade700],
-                      ).createShader(bounds),
+                      (bounds) =>
+                          AppColors.primaryGradient.createShader(bounds),
                   child: const Text(
                     '¡Bienvenido!',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 35,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Elige tu menú favorito',
-                  style: TextStyle(fontSize: 28, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: AppColors.grey600,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -266,18 +260,17 @@ class _HomePageState extends State<HomePage> {
     final cartService = Provider.of<CartService>(context);
 
     return Scaffold(
-      backgroundColor: Colors.transparent, // Permite ver el gradiente
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Ordena Fácil', style: TextStyle(fontSize: 25)),
+        title: const Text('Ordena Fácil',
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         automaticallyImplyLeading: false,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.blue, Colors.blue.shade600],
-            ),
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         actions: [
           // Botón de carrito con contador
@@ -300,12 +293,15 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.red, Colors.red.shade700],
+                        colors: [
+                          AppColors.error,
+                          AppColors.error.withOpacity(0.8),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.red.withOpacity(0.4),
+                          color: AppColors.error.withOpacity(0.4),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -317,7 +313,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: Text(
                       '${cartService.itemCount}',
-                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -329,10 +329,10 @@ class _HomePageState extends State<HomePage> {
       body: _buildBody(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppColors.grey300.withOpacity(0.5),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -357,8 +357,8 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.grey500,
           onTap: _onItemTapped,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),

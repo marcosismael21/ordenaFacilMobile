@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/platillo.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
+import '../theme/app_theme.dart';
 
 class PlatilloDetailPage extends StatefulWidget {
   final Platillo platillo;
@@ -52,7 +53,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
             style: const TextStyle(fontSize: 18),
           ),
           duration: const Duration(seconds: 2),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -110,7 +111,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: AppColors.grey400.withOpacity(0.3),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -127,7 +128,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Container(
-                          color: Colors.grey[200],
+                          color: AppColors.grey200,
                           child: Center(
                             child: CircularProgressIndicator(
                               value:
@@ -135,7 +136,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                                       ? loadingProgress.cumulativeBytesLoaded /
                                           loadingProgress.expectedTotalBytes!
                                       : null,
-                              color: Colors.blue,
+                              color: AppColors.primary,
                               strokeWidth: 3,
                             ),
                           ),
@@ -147,7 +148,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [Colors.grey[300]!, Colors.grey[400]!],
+                              colors: [AppColors.grey200, AppColors.grey300],
                             ),
                           ),
                           child: const Center(
@@ -157,14 +158,14 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                                 Icon(
                                   Icons.broken_image,
                                   size: 80,
-                                  color: Colors.grey,
+                                  color: AppColors.grey500,
                                 ),
                                 SizedBox(height: 16),
                                 Text(
                                   'Imagen no disponible',
                                   style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.grey,
+                                    fontSize: 22,
+                                    color: AppColors.grey600,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -180,14 +181,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.4),
-                        Colors.transparent,
-                      ],
-                    ),
+                    gradient: AppGradients.imageOverlay,
                   ),
                 ),
               ],
@@ -198,11 +192,11 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppColors.grey300.withOpacity(0.5),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   ),
@@ -217,7 +211,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: AppColors.onSurface,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -225,32 +219,29 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                   // Tipo de platillo mejorado
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.restaurant_menu,
-                        color: Colors.blue,
-                        size: 22,
+                        color: AppColors.primary,
+                        size: 30,
                       ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
+                          horizontal: 16,
+                          vertical: 8,
                         ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [
-                              Colors.blue.withOpacity(0.15),
-                              Colors.blue.withOpacity(0.08),
-                            ],
+                            colors: [AppColors.accent, AppColors.accentLight],
                           ),
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(
-                            color: Colors.blue.withOpacity(0.4),
-                            width: 1.5,
+                            color: AppColors.primary.withOpacity(0.3),
+                            width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: AppColors.primary.withOpacity(0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
@@ -260,15 +251,15 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                           widget.platillo.tipoPlatillo,
                           style: const TextStyle(
                             fontSize: 20,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   // Descripción mejorada
                   const Text(
@@ -276,45 +267,43 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: AppColors.onSurface,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.08),
+                      color: AppColors.grey100,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.withOpacity(0.25)),
+                      border: Border.all(color: AppColors.grey300),
                     ),
                     child: Text(
                       widget.platillo.descripcion,
                       style: const TextStyle(
-                        fontSize: 20,
-                        height: 1.6,
-                        color: Colors.black87,
+                        fontSize: 22,
+                        height: 1.5,
+                        color: AppColors.onSurface,
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
                   // Precio destacado mejorado
                   Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
+                        horizontal: 24,
                         vertical: 16,
                       ),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue, Colors.blue.shade700],
-                        ),
-                        borderRadius: BorderRadius.circular(30),
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.4),
+                            color: AppColors.primary.withOpacity(0.3),
                             blurRadius: 15,
                             offset: const Offset(0, 6),
                           ),
@@ -344,7 +333,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   // Sección de cantidad
                   const Text(
@@ -352,7 +341,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: AppColors.onSurface,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -363,82 +352,76 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.08),
+                            color: AppColors.grey100,
                             borderRadius: BorderRadius.circular(25),
-                            border: Border.all(
-                              color: Colors.grey.withOpacity(0.3),
-                            ),
+                            border: Border.all(color: AppColors.grey300),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [Colors.blue, Colors.blue.shade600],
-                                  ),
+                                  gradient: AppColors.primaryGradient,
                                   borderRadius: BorderRadius.circular(25),
                                 ),
                                 child: IconButton(
                                   icon: const Icon(Icons.remove, size: 28),
                                   onPressed: _decrementCantidad,
                                   color: Colors.white,
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(10),
                                 ),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 32,
-                                  vertical: 16,
+                                  horizontal: 24,
+                                  vertical: 12,
                                 ),
                                 child: Text(
                                   '$_cantidad',
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    color: AppColors.onSurface,
                                   ),
                                 ),
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [Colors.blue, Colors.blue.shade600],
-                                  ),
+                                  gradient: AppColors.primaryGradient,
                                   borderRadius: BorderRadius.circular(25),
                                 ),
                                 child: IconButton(
                                   icon: const Icon(Icons.add, size: 28),
                                   onPressed: _incrementCantidad,
                                   color: Colors.white,
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(10),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         // Total calculado
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
+                            horizontal: 20,
+                            vertical: 12,
                           ),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.orange.withOpacity(0.15),
-                                Colors.orange.withOpacity(0.08),
+                                AppColors.warning.withOpacity(0.15),
+                                AppColors.warning.withOpacity(0.08),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.orange.withOpacity(0.4),
-                              width: 1.5,
+                              color: AppColors.warning.withOpacity(0.4),
+                              width: 1,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.orange.withOpacity(0.2),
+                                color: AppColors.warning.withOpacity(0.2),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
@@ -447,18 +430,18 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.calculate,
-                                color: Colors.orange,
+                                color: AppColors.warning,
                                 size: 24,
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 8),
                               Text(
                                 'Total: L.${(widget.platillo.precio * _cantidad).toStringAsFixed(2)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                                  color: AppColors.warning,
                                 ),
                               ),
                             ],
@@ -468,19 +451,17 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   // Botón para agregar al carrito rediseñado
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.green, Colors.green.shade600],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
+                      gradient: AppColors.secondaryGradient,
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.3),
+                          color: AppColors.secondary.withOpacity(0.3),
                           blurRadius: 15,
                           offset: const Offset(0, 6),
                         ),
@@ -491,24 +472,24 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.shopping_cart_outlined,
                             color: Colors.white,
-                            size: 28,
+                            size: 24,
                           ),
-                          const SizedBox(width: 12),
-                          const Text(
+                          SizedBox(width: 12),
+                          Text(
                             'Agregar al Carrito',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 22,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
@@ -518,7 +499,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
