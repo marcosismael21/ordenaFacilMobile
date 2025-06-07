@@ -5,6 +5,121 @@ import '../models/cart_item.dart';
 import '../services/cart_service.dart';
 import '../theme/app_theme.dart';
 
+// OPCIÓN 1: Página completa para ver la imagen
+class ImageViewPage extends StatelessWidget {
+  final String imageUrl;
+  final String title;
+
+  const ImageViewPage({Key? key, required this.imageUrl, required this.title})
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.onSurface,
+          ),
+        ),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.onSurface, size: 24),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Center(
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.grey300.withOpacity(0.5),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: InteractiveViewer(
+              panEnabled: true,
+              boundaryMargin: const EdgeInsets.all(20),
+              minScale: 0.5,
+              maxScale: 3.0,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    width: 300,
+                    height: 300,
+                    color: AppColors.grey200,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value:
+                            loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                        color: AppColors.primary,
+                        strokeWidth: 3,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [AppColors.grey200, AppColors.grey300],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            size: 80,
+                            color: AppColors.grey500,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Imagen no disponible',
+                            style: TextStyle(
+                              fontSize: 22,
+                              color: AppColors.grey600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class PlatilloDetailPage extends StatefulWidget {
   final Platillo platillo;
 
@@ -31,6 +146,262 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
         _cantidad--;
       });
     }
+  }
+
+  void _mostrarImagenElegante() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Container();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          ),
+          child: FadeTransition(
+            opacity: animation,
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.primary.withOpacity(0.1),
+                      AppColors.surface.withOpacity(0.95),
+                      AppColors.secondary.withOpacity(0.1),
+                    ],
+                  ),
+                ),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      // Header elegante
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.grey300.withOpacity(0.5),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.arrow_back_ios_rounded),
+                                onPressed: () => Navigator.of(context).pop(),
+                                color: AppColors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(15),
+                                  border: Border.all(
+                                    color: AppColors.primary.withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Text(
+                                  widget.platillo.nombre,
+                                  style: const TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurface,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.2),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(25),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    AppColors.surface,
+                                    AppColors.surface.withOpacity(0.8),
+                                  ],
+                                ),
+                              ),
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                boundaryMargin: const EdgeInsets.all(20),
+                                minScale: 0.5,
+                                maxScale: 3.0,
+                                child: Center(
+                                  child: Image.network(
+                                    widget.platillo.imageUrl,
+                                    fit: BoxFit.contain,
+                                    loadingBuilder: (
+                                      context,
+                                      child,
+                                      loadingProgress,
+                                    ) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        width: 200,
+                                        height: 200,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.grey100,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              CircularProgressIndicator(
+                                                value:
+                                                    loadingProgress
+                                                                .expectedTotalBytes !=
+                                                            null
+                                                        ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            loadingProgress
+                                                                .expectedTotalBytes!
+                                                        : null,
+                                                color: AppColors.primary,
+                                                strokeWidth: 3,
+                                              ),
+                                              const SizedBox(height: 16),
+                                              const Text(
+                                                'Cargando imagen...',
+                                                style: TextStyle(
+                                                  color: AppColors.grey600,
+                                                  fontSize: 30,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 300,
+                                        height: 300,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              AppColors.grey200,
+                                              AppColors.grey300,
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.broken_image_rounded,
+                                                size: 80,
+                                                color: AppColors.grey500,
+                                              ),
+                                              SizedBox(height: 16),
+                                              Text(
+                                                'Imagen no disponible',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  color: AppColors.grey600,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.zoom_in_rounded,
+                              color: AppColors.primary,
+                              size: 40,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Pellizca para hacer zoom',
+                              style: TextStyle(
+                                color: AppColors.grey600,
+                                fontSize: 30,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _agregarAlCarrito() {
@@ -101,79 +472,85 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
             // Imagen del platillo con diseño mejorado
             Stack(
               children: [
-                Container(
-                  height: 400,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.grey400.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
+                GestureDetector(
+                  // CAMBIAR AQUÍ: Usa _abrirImagenEnPagina() para OPCIÓN 1
+                  // o _mostrarImagenElegante() para OPCIÓN 2
+                  onTap: _mostrarImagenElegante,
+                  child: Container(
+                    height: 400,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
                       ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.grey400.withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                    child: Image.network(
-                      widget.platillo.imageUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: AppColors.grey200,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                              color: AppColors.primary,
-                              strokeWidth: 3,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
+                      child: Image.network(
+                        widget.platillo.imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: AppColors.grey200,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                color: AppColors.primary,
+                                strokeWidth: 3,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [AppColors.grey200, AppColors.grey300],
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [AppColors.grey200, AppColors.grey300],
+                              ),
                             ),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.broken_image,
-                                  size: 80,
-                                  color: AppColors.grey500,
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Imagen no disponible',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    color: AppColors.grey600,
-                                    fontWeight: FontWeight.w500,
+                            child: const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.broken_image,
+                                    size: 80,
+                                    color: AppColors.grey500,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Imagen no disponible',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      color: AppColors.grey600,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -182,6 +559,23 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                   height: 120,
                   decoration: BoxDecoration(
                     gradient: AppGradients.imageOverlay,
+                  ),
+                ),
+                // Indicador visual de que la imagen es tocable
+                Positioned(
+                  bottom: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.zoom_in,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
@@ -314,8 +708,8 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                           const Text(
                             'Precio unitario',
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
+                              fontSize: 20,
+                              color: Colors.white,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -439,7 +833,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                               Text(
                                 'Total: L.${(widget.platillo.precio * _cantidad).toStringAsFixed(2)}',
                                 style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 25,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.warning,
                                 ),
@@ -489,7 +883,7 @@ class _PlatilloDetailPageState extends State<PlatilloDetailPage> {
                           Text(
                             'Agregar al Carrito',
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 25,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),

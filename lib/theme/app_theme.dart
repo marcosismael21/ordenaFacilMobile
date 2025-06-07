@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Colores principales - Tonos cálidos y suaves inspirados en restaurante
-  static const Color primary = Color(0xFFE8A87C); // Naranja suave/durazno
-  static const Color primaryLight = Color(0xFFF2C4A0); // Naranja más claro
-  static const Color primaryDark = Color(0xFFD4956B); // Naranja más oscuro
+  static const Color primary = Color(0xFFE07B39);
+  static const Color primaryLight = Color(0xFFE89A5F);
+  static const Color primaryDark = Color(0xFFCC6A28);
 
   // Colores secundarios - Verde menta suave para contraste
   static const Color secondary = Color(0xFF9BDEAC); // Verde menta suave
