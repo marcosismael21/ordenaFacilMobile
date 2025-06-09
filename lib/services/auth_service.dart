@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String _baseUrl = 'http://10.0.2.2:3004/api-mobile/cliente';
+  final String _baseUrl = 'http://10.0.2.2:3004/api-mobile/colaborador';
 
   // Método para iniciar sesión
   Future<Map<String, dynamic>> login(String usuario, String clave) async {
@@ -90,34 +90,5 @@ class AuthService {
       return userData['nombres'];
     }
     return null;
-  }
-
-  // Método para verificar si el token sigue siendo válido
-  Future<bool> validateToken() async {
-    try {
-      final token = await getToken();
-      if (token == null) {
-        return false;
-      }
-
-      final response = await http.get(
-        Uri.parse('$_baseUrl/validate'),
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'tu_api_key_para_mobile',
-          
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        return responseData['ok'] == true || responseData['success'] == true;
-      }
-
-      return false;
-    } catch (e) {
-      debugPrint('Error validando token: $e');
-      return false;
-    }
   }
 }

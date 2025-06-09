@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool isModal;
+  final Function(bool)? onLoginComplete;
+
+  const LoginPage({super.key, this.isModal = false, this.onLoginComplete});
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -18,119 +22,261 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isModal) {
+      return _buildModalForm();
+    }
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade700, Colors.blue.shade900],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo o Imagen
-                    const Icon(
-                      Icons.restaurant_menu,
-                      size: 100,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 32),
-                    // Título
-                    const Text(
-                      'Ordena Fácil',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    // Campo de Usuario
-                    TextFormField(
-                      controller: _usuarioController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintText: 'Usuario',
-                        prefixIcon: const Icon(Icons.person),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Por favor ingrese su usuario';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    // Campo de Contraseña
-                    TextFormField(
-                      controller: _claveController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintText: 'Contraseña',
-                        prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Por favor ingrese su contraseña';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    // Botón de Inicio de Sesión
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.blue.shade900,
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child:
-                            _isLoading
-                                ? const CircularProgressIndicator()
-                                : const Text(
-                                  'Iniciar Sesión',
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Botón de Registro
-                    TextButton(
-                      onPressed: () {
-                        // Navegar a la página de registro
-                      },
-                      child: const Text(
-                        'Crear cuenta',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
+        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        child: SafeArea(child: _buildModalForm()),
+      ),
+    );
+  }
+
+  Widget _buildModalForm() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Icono de acceso
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
+                child: const Icon(
+                  Icons.lock_outline,
+                  size: 50,
+                  color: Colors.white,
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+
+              // Título
+              Text(
+                widget.isModal ? 'Acceso Requerido' : 'Bienvenido',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onBackground,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Subtítulo
+              Text(
+                widget.isModal
+                    ? 'Ingresa tus credenciales para acceder a la configuración'
+                    : 'Ingresa a tu cuenta',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 25, color: AppColors.grey600),
+              ),
+              const SizedBox(height: 32),
+
+              // Campo de Usuario
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.grey300.withOpacity(0.5),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: _usuarioController,
+                  style: const TextStyle(
+                    fontSize: 23,
+                  ), // Aumenta el tamaño del texto ingresado
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    hintText: 'Usuario',
+                    hintStyle: TextStyle(
+                      color: AppColors.grey500,
+                      fontSize: 23,
+                    ), // Aumenta el tamaño del texto de placeholder
+                    prefixIcon: Icon(
+                      Icons.person_outline,
+                      size: 30,
+                      color: AppColors.primary,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: AppColors.primary,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 18,
+                    ),
+                    errorStyle: const TextStyle(
+                      fontSize: 20,
+                    ), // Aumenta el tamaño del texto de error
+                  ),
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Por favor ingrese su usuario';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Campo de Contraseña
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.grey300.withOpacity(0.5),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: _claveController,
+                  obscureText: true,
+                  style: const TextStyle(
+                    fontSize: 23,
+                  ), // Aumenta el tamaño del texto ingresado
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    hintText: 'Contraseña',
+                    hintStyle: TextStyle(
+                      color: AppColors.grey500,
+                      fontSize: 23,
+                    ), // Aumenta el tamaño del texto de placeholder
+                    prefixIcon: Icon(
+                      Icons.lock_outline,
+                      color: AppColors.primary,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: AppColors.primary,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 18,
+                    ),
+                    errorStyle: const TextStyle(
+                      fontSize: 20,
+                    ), // Aumenta el tamaño del texto de error
+                  ),
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Por favor ingrese su contraseña';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Botón de Inicio de Sesión
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child:
+                      _isLoading
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : const Text(
+                            'Iniciar Sesión',
+                            style: TextStyle(
+                              fontSize: 23,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                ),
+              ),
+
+              // Espaciado adicional si no es modal
+              if (!widget.isModal) ...[
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () {
+                    // Acción para crear cuenta si no es modal
+                  },
+                  child: Text(
+                    'Crear cuenta',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -148,23 +294,48 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         if (response['success']) {
-          // Navegar a la página principal
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
+          // Si es modal, usar callback
+          if (widget.isModal && widget.onLoginComplete != null) {
+            widget.onLoginComplete!(
+              true,
+            ); // Retorna true si el login fue exitoso
+          } else {
+            // Navegación normal si no es modal
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          }
         } else {
+          // Si es modal, también retornar false
+          if (widget.isModal && widget.onLoginComplete != null) {
+            widget.onLoginComplete!(false);
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(response['message']),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
         }
       } catch (e) {
+        // En caso de error, también retornar false si es modal
+        if (widget.isModal && widget.onLoginComplete != null) {
+          widget.onLoginComplete!(false);
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       } finally {

@@ -4,8 +4,10 @@ import '../models/tipo_platillo.dart';
 import '../services/tipo_platillo_service.dart';
 import '../theme/app_theme.dart';
 import 'MenuPlatillosPage.dart';
+import 'login_page.dart';
 import 'navigation/pedidos_page.dart';
 import 'navigation/perfil_page.dart';
+import 'navigation/configuracion.dart';
 import 'cart_page.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
@@ -30,6 +32,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
+    if (index == 2) {
+      _mostrarModalLogin();
+      return;
+    }
+
     setState(() {
       _selectedIndex = index;
       if (index == 0) {
@@ -44,6 +51,110 @@ class _HomePageState extends State<HomePage> {
     if (_selectedIndex == 0) {
       _loadTiposPlatillo();
     }
+  }
+
+  void _mostrarModalLogin() {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // Permite cerrar tocando fuera
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header del modal con botón de cerrar
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Acceso Restringido',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Contenido del login
+                Flexible(
+                  child: LoginPage(
+                    isModal: true,
+                    onLoginComplete: (bool loginExitoso) {
+                      Navigator.of(context).pop(); // Cerrar modal
+
+                      if (loginExitoso) {
+                        // Login exitoso - ir a configuración
+                        setState(() {
+                          _selectedIndex = 2;
+                        });
+
+                        // Mostrar mensaje de éxito
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Acceso concedido'),
+                            backgroundColor: AppColors.success,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      } else {
+                        // Login fallido - mostrar mensaje (opcional)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Acceso denegado'),
+                            backgroundColor: AppColors.error,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildMenuCards() {
@@ -188,7 +299,7 @@ class _HomePageState extends State<HomePage> {
         case 1:
           return const PedidosPage();
         case 2:
-          return const PerfilPage();
+          return const ConfiguracionPage();
         default:
           return const Center(child: Text('Página no encontrada'));
       }
@@ -262,11 +373,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Ordena Fácil',
-          style: TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
+        title: const Text(
+          'Ordena Fácil',
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
         ),
         automaticallyImplyLeading: false,
         flexibleSpace: Container(
@@ -352,8 +461,8 @@ class _HomePageState extends State<HomePage> {
               label: 'Pedidos',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Mi Perfil',
+              icon: Icon(Icons.settings),
+              label: 'Configuración',
             ),
           ],
           currentIndex: _selectedIndex,

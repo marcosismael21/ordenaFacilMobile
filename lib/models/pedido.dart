@@ -109,6 +109,7 @@ class Pedido {
   int colaboradorId;
   int tipoPedidoId;
   int? direccionId;
+  int? mesaId;
   double descuentoPedido;
   List<int> platilloIds;
   List<int> cantidadPedidoDetalles;
@@ -125,6 +126,7 @@ class Pedido {
     required this.colaboradorId,
     required this.tipoPedidoId,
     this.direccionId,
+    this.mesaId,
     required this.descuentoPedido,
     required this.platilloIds,
     required this.cantidadPedidoDetalles,
@@ -143,6 +145,7 @@ class Pedido {
       colaboradorId: json['colaboradorId'],
       tipoPedidoId: json['tipoPedidoId'],
       direccionId: json['direccionId'],
+      mesaId: json['mesaId'],
       descuentoPedido: double.parse(json['descuentoPedido'].toString()),
       platilloIds: List<int>.from(json['platilloIds']),
       cantidadPedidoDetalles: List<int>.from(json['cantidadPedidoDetalles']),
@@ -168,6 +171,7 @@ class Pedido {
       'colaboradorId': colaboradorId,
       'tipoPedidoId': tipoPedidoId,
       'direccionId': direccionId,
+      'mesaId': mesaId,
       'descuentoPedido': descuentoPedido,
       'platilloIds': platilloIds,
       'cantidadPedidoDetalles': cantidadPedidoDetalles,
