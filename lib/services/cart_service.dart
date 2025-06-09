@@ -90,9 +90,9 @@ class CartService extends ChangeNotifier {
 
   // Método para convertir el carrito en un objeto Pedido
   Pedido toPedido({
-    required int clienteId,
-    required int colaboradorId,
-    required int tipoPedidoId,
+    int? clienteId,
+    int? colaboradorId,
+    int? tipoPedidoId,
     int? direccionId,
     double descuentoPedido = 0.0,
     int estadoId = 1,
@@ -118,9 +118,9 @@ class CartService extends ChangeNotifier {
     }
    
     return Pedido(
-      clienteId: clienteId,
-      colaboradorId: colaboradorId,
-      tipoPedidoId: tipoPedidoId,
+      clienteId: clienteId!,
+      colaboradorId: colaboradorId!,
+      tipoPedidoId: tipoPedidoId!,
       direccionId: direccionId,
       descuentoPedido: descuentoPedido,
       platilloIds: platilloIds,

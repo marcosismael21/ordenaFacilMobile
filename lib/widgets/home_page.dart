@@ -278,7 +278,7 @@ class _HomePageState extends State<HomePage> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_cart, size: 35),
+                icon: const Icon(Icons.shopping_cart, size: 50),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => const CartPage()),
@@ -290,7 +290,7 @@ class _HomePageState extends State<HomePage> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -308,14 +308,14 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
+                      minWidth: 20,
+                      minHeight: 20,
                     ),
                     child: Text(
                       '${cartService.itemCount}',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
