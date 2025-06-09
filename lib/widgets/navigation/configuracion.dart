@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/auth_service.dart';
+import '../../services/mesa_service.dart';
+import '../../models/mesa.dart';
 import '../login_page.dart';
+import '../../theme/app_theme.dart';
 
 class ConfiguracionPage extends StatefulWidget {
   const ConfiguracionPage({super.key});
@@ -12,11 +15,17 @@ class ConfiguracionPage extends StatefulWidget {
 
 class _ConfiguracionPageState extends State<ConfiguracionPage> {
   final AuthService _authService = AuthService();
+  final MesaService _mesaService = MesaService();
 
   // Variables para almacenar los valores
   String _numeroMesa = '';
   String _colaboradorAsignado = '';
   String _mesasAsociadas = '';
+
+  // Variables para el modal de mesas
+  List<Mesa> _mesas = [];
+  bool _isLoadingMesas = false;
+  Mesa? _mesaSeleccionada;
 
   @override
   void initState() {
@@ -25,60 +34,329 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
   }
 
   Future<void> _loadConfiguracion() async {
-    // Aquí puedes cargar los valores desde SharedPreferences o tu servicio
-    // Por ahora los dejamos vacíos como placeholder
+    final prefs = await SharedPreferences.getInstance();
+
+    // Cargar mesa seleccionada desde SharedPreferences
+    final mesaId = prefs.getInt('mesa_seleccionada_id');
+    final mesaDescripcion = prefs.getString('mesa_seleccionada_descripcion');
+
     setState(() {
-      _numeroMesa = 'No asignada';
+      _numeroMesa = mesaDescripcion ?? 'No asignada';
       _colaboradorAsignado = 'No asignado';
       _mesasAsociadas = 'Ninguna';
     });
   }
 
-  Future<void> _cerrarSesion(BuildContext context) async {
-    try {
-      await _authService.logout();
+  Future<void> _saveMesaSeleccionada(Mesa mesa) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('mesa_seleccionada_id', mesa.id);
+    await prefs.setString('mesa_seleccionada_descripcion', mesa.descripcion);
 
-      if (mounted) {
-        // Navegar a la página de login y eliminar todas las rutas anteriores
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-          (Route<dynamic> route) => false,
-        );
-      }
+    setState(() {
+      _numeroMesa = mesa.descripcion;
+    });
+  }
+
+  Future<void> _loadMesasInModal(StateSetter setStateModal) async {
+    setStateModal(() {
+      _isLoadingMesas = true;
+    });
+
+    try {
+      final mesas = await _mesaService.getAllMesa();
+      setStateModal(() {
+        _mesas = mesas;
+        _isLoadingMesas = false;
+      });
     } catch (e) {
+      setStateModal(() {
+        _isLoadingMesas = false;
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al cerrar sesión: $e'),
-            backgroundColor: Colors.red,
+            content: Text('Error al cargar mesas: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
     }
   }
 
-  void _mostrarModalNumeroMesa() {
+  Future<void> _loadMesas() async {
+    setState(() {
+      _isLoadingMesas = true;
+    });
+
+    try {
+      final mesas = await _mesaService.getAllMesa();
+      setState(() {
+        _mesas = mesas;
+        _isLoadingMesas = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMesas = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar mesas: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _mostrarModalNumeroMesa() async {
+    // Resetear selección
+    _mesaSeleccionada = null;
+
+    // Mostrar el modal primero
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Configurar Número de Mesa"),
-          content: const Text(
-            "Modal para configurar número de mesa\n(Lógica pendiente)",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancelar"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Aquí iría la lógica para configurar el número de mesa
-              },
-              child: const Text("Guardar"),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setStateModal) {
+            // Cargar mesas después de que el modal se haya mostrado
+            if (_mesas.isEmpty && !_isLoadingMesas) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _loadMesasInModal(setStateModal);
+              });
+            }
+
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.table_restaurant,
+                    color: AppColors.primary,
+                    size: 40,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    "Configurar Número de Mesa",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 400,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Selecciona una mesa:',
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child:
+                          _isLoadingMesas
+                              ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CircularProgressIndicator(
+                                      color: AppColors.primary,
+                                      strokeWidth: 3,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Cargando mesas...',
+                                      style: TextStyle(
+                                        color: AppColors.grey600,
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              : _mesas.isEmpty
+                              ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      size: 48,
+                                      color: AppColors.grey500,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No hay mesas disponibles',
+                                      style: TextStyle(
+                                        color: AppColors.grey600,
+                                        fontSize: 25,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              : ListView.builder(
+                                itemCount: _mesas.length,
+                                itemBuilder: (context, index) {
+                                  final mesa = _mesas[index];
+                                  final isSelected =
+                                      _mesaSeleccionada?.id == mesa.id;
+
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color:
+                                            isSelected
+                                                ? AppColors.primary
+                                                : AppColors.grey300,
+                                        width: isSelected ? 2 : 1,
+                                      ),
+                                      color:
+                                          isSelected
+                                              ? AppColors.primary.withOpacity(
+                                                0.1,
+                                              )
+                                              : AppColors.grey100,
+                                    ),
+                                    child: ListTile(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                      leading: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              isSelected
+                                                  ? AppColors.primary
+                                                  : AppColors.grey400,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.table_restaurant,
+                                          color: Colors.white,
+                                          size: 30,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        mesa.descripcion,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 25,
+                                          color:
+                                              isSelected
+                                                  ? AppColors.primary
+                                                  : AppColors.onSurface,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        'Cupos: ${mesa.cupos}',
+                                        style: TextStyle(
+                                          color: AppColors.grey600,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      trailing:
+                                          isSelected
+                                              ? Icon(
+                                                Icons.check_circle,
+                                                color: AppColors.primary,
+                                                size: 30,
+                                              )
+                                              : Icon(
+                                                Icons.circle_outlined,
+                                                color: AppColors.grey400,
+                                                size: 30,
+                                              ),
+                                      onTap: () {
+                                        setStateModal(() {
+                                          _mesaSeleccionada = mesa;
+                                        });
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    "Cancelar",
+                    style: TextStyle(
+                      color: AppColors.grey600,
+                      fontSize: 25,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed:
+                      _mesaSeleccionada == null
+                          ? null
+                          : () async {
+                            await _saveMesaSeleccionada(_mesaSeleccionada!);
+                            Navigator.of(context).pop();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Mesa "${_mesaSeleccionada!.descripcion}" configurada correctamente',
+                                  style: const TextStyle(fontSize: 25),
+                                ),
+                                backgroundColor: AppColors.success,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                          },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    "Guardar",
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -138,92 +416,69 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     );
   }
 
-  void _mostrarDialogoCerrarSesion(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Cerrar Sesión"),
-          content: const Text("¿Estás seguro que deseas cerrar sesión?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancelar"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _cerrarSesion(context);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text(
-                "Cerrar Sesión",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración'),
+        title: const Text(
+          'Configuración',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 25,
+          ),
+        ),
         automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Configuración General',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Configuración General',
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onBackground,
+                ),
+              ),
+              const SizedBox(height: 20),
 
-            // Número de Mesa
-            _buildConfigurationTile(
-              icon: Icons.table_restaurant,
-              title: 'Número de Mesa',
-              value: _numeroMesa,
-              onTap: _mostrarModalNumeroMesa,
-            ),
+              // Número de Mesa
+              _buildConfigurationTile(
+                icon: Icons.table_restaurant,
+                title: 'Número de Mesa',
+                value: _numeroMesa,
+                onTap: _mostrarModalNumeroMesa,
+              ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Colaborador Asignado
-            _buildConfigurationTile(
-              icon: Icons.person_outline,
-              title: 'Colaborador Asignado',
-              value: _colaboradorAsignado,
-              onTap: _mostrarModalColaborador,
-            ),
+              // Colaborador Asignado
+              _buildConfigurationTile(
+                icon: Icons.person_outline,
+                title: 'Colaborador Asignado',
+                value: _colaboradorAsignado,
+                onTap: _mostrarModalColaborador,
+              ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Mesas Asociadas
-            _buildConfigurationTile(
-              icon: Icons.view_list,
-              title: 'Mesas Asociadas',
-              value: _mesasAsociadas,
-              onTap: _mostrarModalMesasAsociadas,
-            ),
-
-            const Divider(height: 40, thickness: 1),
-
-            // Cerrar sesión
-            _buildOptionTile(
-              icon: Icons.exit_to_app,
-              title: 'Cerrar sesión',
-              subtitle: 'Salir de la aplicación',
-              iconColor: Colors.red,
-              onTap: () => _mostrarDialogoCerrarSesion(context),
-            ),
-          ],
+              // Mesas Asociadas
+              _buildConfigurationTile(
+                icon: Icons.view_list,
+                title: 'Mesas Asociadas',
+                value: _mesasAsociadas,
+                onTap: _mostrarModalMesasAsociadas,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -236,67 +491,97 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 1,
+      elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: Colors.blue, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.cardGradient,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text(
-                    value,
-                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: AppColors.primary, size: 40),
                   ),
-                  GestureDetector(
-                    onTap: onTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Configurar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.grey100,
+                  border: Border.all(color: AppColors.grey300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.grey700,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: onTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          'Configurar',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -310,14 +595,39 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 1,
+      elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 6),
-      child: ListTile(
-        leading: Icon(icon, color: iconColor ?? Colors.blue, size: 28),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.cardGradient,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(16),
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppColors.primary).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor ?? AppColors.primary, size: 28),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(color: AppColors.grey600, fontSize: 14),
+          ),
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: AppColors.grey500,
+          ),
+          onTap: onTap,
+        ),
       ),
     );
   }
