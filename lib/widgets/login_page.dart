@@ -5,7 +5,8 @@ import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   final bool isModal;
-  final Function(bool)? onLoginComplete;
+  final Function(bool, {Map<String, dynamic>? userData})?
+  onLoginComplete; // Callback mejorado
 
   const LoginPage({super.key, this.isModal = false, this.onLoginComplete});
 
@@ -22,9 +23,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Si es modal, solo retorna el formulario
     if (widget.isModal) {
       return _buildModalForm();
     }
+
+    // Si no es modal, envuelve en Scaffold con fondo
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
@@ -102,9 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: TextFormField(
                   controller: _usuarioController,
-                  style: const TextStyle(
-                    fontSize: 23,
-                  ), // Aumenta el tamaño del texto ingresado
+                  style: const TextStyle(fontSize: 23),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.surface,
@@ -112,7 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                     hintStyle: TextStyle(
                       color: AppColors.grey500,
                       fontSize: 23,
-                    ), // Aumenta el tamaño del texto de placeholder
+                    ),
                     prefixIcon: Icon(
                       Icons.person_outline,
                       size: 30,
@@ -137,9 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                       horizontal: 20,
                       vertical: 18,
                     ),
-                    errorStyle: const TextStyle(
-                      fontSize: 20,
-                    ), // Aumenta el tamaño del texto de error
+                    errorStyle: const TextStyle(fontSize: 20),
                   ),
                   validator: (value) {
                     if (value?.isEmpty ?? true) {
@@ -166,9 +166,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: TextFormField(
                   controller: _claveController,
                   obscureText: true,
-                  style: const TextStyle(
-                    fontSize: 23,
-                  ), // Aumenta el tamaño del texto ingresado
+                  style: const TextStyle(fontSize: 23),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.surface,
@@ -176,9 +174,10 @@ class _LoginPageState extends State<LoginPage> {
                     hintStyle: TextStyle(
                       color: AppColors.grey500,
                       fontSize: 23,
-                    ), // Aumenta el tamaño del texto de placeholder
+                    ),
                     prefixIcon: Icon(
                       Icons.lock_outline,
+                      size: 30,
                       color: AppColors.primary,
                     ),
                     border: OutlineInputBorder(
@@ -202,7 +201,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     errorStyle: const TextStyle(
                       fontSize: 20,
-                    ), // Aumenta el tamaño del texto de error
+                    ),
                   ),
                   validator: (value) {
                     if (value?.isEmpty ?? true) {
@@ -297,7 +296,7 @@ class _LoginPageState extends State<LoginPage> {
           // Si es modal, usar callback
           if (widget.isModal && widget.onLoginComplete != null) {
             widget.onLoginComplete!(
-              true,
+              true, userData: response['userData'],
             ); // Retorna true si el login fue exitoso
           } else {
             // Navegación normal si no es modal
@@ -313,7 +312,11 @@ class _LoginPageState extends State<LoginPage> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(response['message']),
+              content: Text(response['message'],
+                style: const TextStyle(
+                  fontSize: 25,
+                ),
+              ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(

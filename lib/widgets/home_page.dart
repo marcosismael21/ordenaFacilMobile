@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../models/tipo_platillo.dart';
 import '../services/tipo_platillo_service.dart';
@@ -113,11 +114,13 @@ class _HomePageState extends State<HomePage> {
                 Flexible(
                   child: LoginPage(
                     isModal: true,
-                    onLoginComplete: (bool loginExitoso) {
+                    onLoginComplete: (
+                      bool loginExitoso, {
+                      Map<String, dynamic>? userData,
+                    }) {
                       Navigator.of(context).pop(); // Cerrar modal
 
                       if (loginExitoso) {
-                        // Login exitoso - ir a configuración
                         setState(() {
                           _selectedIndex = 2;
                         });
@@ -125,7 +128,9 @@ class _HomePageState extends State<HomePage> {
                         // Mostrar mensaje de éxito
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text('Acceso concedido'),
+                            content: Text(
+                              'Bienvenido ${userData?['nombres'] ?? 'Usuario'}',
+                            ),
                             backgroundColor: AppColors.success,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
@@ -134,7 +139,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                       } else {
-                        // Login fallido - mostrar mensaje (opcional)
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: const Text('Acceso denegado'),

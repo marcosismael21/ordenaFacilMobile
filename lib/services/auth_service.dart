@@ -31,7 +31,7 @@ class AuthService {
           await prefs.setString('userData', json.encode(data['userData']));
         }
 
-        return {'success': true, 'token': data['token']};
+        return {'success': true, 'token': data['token'], 'userData': data['userData']};
       }
 
       return {

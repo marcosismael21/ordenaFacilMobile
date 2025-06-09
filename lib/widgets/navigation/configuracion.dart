@@ -362,28 +362,192 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     );
   }
 
+  Future<void> _saveColaboradorData(Map<String, dynamic> userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('colaborador_id', userData['id'] ?? 0);
+    await prefs.setString(
+      'colaborador_nombre',
+      userData['nombres'] ?? 'Sin nombre',
+    );
+
+    setState(() {
+      _colaboradorAsignado = userData['nombres'] ?? 'Sin nombre';
+    });
+  }
+
   void _mostrarModalColaborador() {
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Asignar Colaborador"),
-          content: const Text(
-            "Modal para asignar colaborador\n(Lógica pendiente)",
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.65,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header del modal
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Asignar Colaborador',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Información adicional
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  color: AppColors.grey100,
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: AppColors.primary,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Ingresa las credenciales del colaborador que atenderá esta estación',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: AppColors.grey700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Contenido del login
+                Flexible(
+                  child: LoginPage(
+                    isModal: true,
+                    onLoginComplete: (
+                      bool loginExitoso, {
+                      Map<String, dynamic>? userData,
+                    }) {
+                      Navigator.of(context).pop(); // Cerrar modal
+
+                      if (loginExitoso && userData != null) {
+                        // Guardar datos del colaborador
+                        _saveColaboradorData(userData);
+
+                        // Mostrar mensaje de éxito
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Colaborador "${userData['nombres']}" asignado correctamente',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: AppColors.success,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            duration: const Duration(seconds: 4),
+                          ),
+                        );
+                      } else {
+                        print(userData);
+                        // Login fallido
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Credenciales incorrectas. Inténtalo de nuevo.',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: AppColors.error,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            duration: const Duration(seconds: 4),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancelar"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Aquí iría la lógica para asignar colaborador
-              },
-              child: const Text("Guardar"),
-            ),
-          ],
         );
       },
     );
