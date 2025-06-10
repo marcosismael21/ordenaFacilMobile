@@ -39,10 +39,11 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     // Cargar mesa seleccionada desde SharedPreferences
     final mesaId = prefs.getInt('mesa_seleccionada_id');
     final mesaDescripcion = prefs.getString('mesa_seleccionada_descripcion');
+    final colaboradorNombre = prefs.getString('colaborador_nombre');
 
     setState(() {
       _numeroMesa = mesaDescripcion ?? 'No asignada';
-      _colaboradorAsignado = 'No asignado';
+      _colaboradorAsignado = colaboradorNombre ?? 'No asignado';
       _mesasAsociadas = 'Ninguna';
     });
   }

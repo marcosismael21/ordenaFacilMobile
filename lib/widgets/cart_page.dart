@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
 import '../services/pedido_service.dart';
@@ -220,10 +223,34 @@ class _CartPageState extends State<CartPage> {
     );
 
     try {
+      // Obtener valores de configuración desde SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final mesaId = prefs.getInt('mesa_seleccionada_id');
+      final colaboradorId = prefs.getInt('colaborador_id');
+
+      // Verificar que tenemos los valores necesarios
+      if (colaboradorId == null) {
+        // Cerrar diálogo de carga
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Error: No hay colaborador asignado. Configure primero.',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
       // Crear objeto Pedido a partir del carrito con valores por defecto
       final pedido = cartService.toPedido(
         clienteId: 1, // Consumidor final
-        colaboradorId: 8,
+        colaboradorId: colaboradorId,
+        mesaId: mesaId,
         tipoPedidoId: 1, // Restaurante por defecto
         direccionId: null, // Sin dirección
         estadoId: 1,

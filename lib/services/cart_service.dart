@@ -31,15 +31,8 @@ class CartService extends ChangeNotifier {
     }
   }
 
-  Future<void> saveCart() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      // Implementar la lógica para guardar el carrito en SharedPreferences
-      // Esto puede requerir serializar los CartItems
-    } catch (e) {
-      print('Error al guardar carrito: $e');
-    }
-  }
+
+
 
   void addItem(Platillo platillo, {int cantidad = 1}) {
     final existingIndex = _items.indexWhere((item) => item.platillo.id == platillo.id);
@@ -59,13 +52,11 @@ class CartService extends ChangeNotifier {
     }
    
     notifyListeners();
-    saveCart();
   }
 
   void removeItem(int platilloId) {
     _items.removeWhere((item) => item.platillo.id == platilloId);
     notifyListeners();
-    saveCart();
   }
 
   void updateItemQuantity(int platilloId, int newQuantity) {
@@ -78,20 +69,19 @@ class CartService extends ChangeNotifier {
     if (existingIndex >= 0) {
       _items[existingIndex].cantidad = newQuantity;
       notifyListeners();
-      saveCart();
     }
   }
 
   void clearCart() {
     _items = [];
     notifyListeners();
-    saveCart();
   }
 
   // Método para convertir el carrito en un objeto Pedido
   Pedido toPedido({
     int? clienteId,
     int? colaboradorId,
+    int? mesaId,
     int? tipoPedidoId,
     int? direccionId,
     double descuentoPedido = 0.0,
@@ -122,6 +112,7 @@ class CartService extends ChangeNotifier {
       colaboradorId: colaboradorId!,
       tipoPedidoId: tipoPedidoId!,
       direccionId: direccionId,
+      mesaId: mesaId,
       descuentoPedido: descuentoPedido,
       platilloIds: platilloIds,
       cantidadPedidoDetalles: cantidades,
