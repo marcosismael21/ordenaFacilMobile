@@ -175,38 +175,74 @@ class _CartPageState extends State<CartPage> {
               'Tipo de Cliente',
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             ),
-            content: const Text(
-              '¿Quién realiza el pedido?',
-              style: TextStyle(fontSize: 25),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    '¿Quién realiza el pedido?',
+                    style: TextStyle(fontSize: 25),
+                  ),
+                  const SizedBox(height: 30),
+                  // Botones de clientes en una fila
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            _procesarPedido(
+                              context,
+                              clienteId: 1,
+                            ); // Consumidor final
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                          ),
+                          child: const Text(
+                            'Consumidor Final',
+                            style: TextStyle(fontSize: 25, color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            _mostrarDialogoDNI(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                          ),
+                          child: const Text(
+                            'Cliente Nombrado',
+                            style: TextStyle(fontSize: 25, color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  // Botón de cancelar en la esquina izquierda
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(fontSize: 25),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancelar', style: TextStyle(fontSize: 25)),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _procesarPedido(context, clienteId: 1); // Consumidor final
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                child: const Text(
-                  'Consumidor Final',
-                  style: TextStyle(fontSize: 25, color: Colors.white),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _mostrarDialogoDNI(context);
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                child: const Text(
-                  'Cliente Nombrado',
-                  style: TextStyle(fontSize: 25, color: Colors.white),
-                ),
-              ),
-            ],
           ),
     );
   }
