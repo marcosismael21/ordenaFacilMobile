@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/cart_item.dart';
+import '../models/cliente.dart';
 import '../services/cart_service.dart';
 import '../services/pedido_service.dart';
 import '../services/auth_service.dart';
+import '../services/cliente_service.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key? key}) : super(key: key);
@@ -106,8 +108,7 @@ class _CartPageState extends State<CartPage> {
                           ),
                         ),
                         ElevatedButton(
-                          onPressed:
-                              () => _mostrarDialogoConfirmarPedido(context),
+                          onPressed: () => _mostrarDialogoTipoCliente(context),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 30,
@@ -165,17 +166,17 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  void _mostrarDialogoConfirmarPedido(BuildContext context) {
+  void _mostrarDialogoTipoCliente(BuildContext context) {
     showDialog(
       context: context,
       builder:
           (ctx) => AlertDialog(
             title: const Text(
-              'Confirmar Pedido',
+              'Tipo de Cliente',
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             ),
             content: const Text(
-              '¿Deseas realizar el pedido?',
+              '¿Quién realiza el pedido?',
               style: TextStyle(fontSize: 25),
             ),
             actions: [
@@ -186,17 +187,188 @@ class _CartPageState extends State<CartPage> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
-                  _procesarPedido(context);
+                  _procesarPedido(context, clienteId: 1); // Consumidor final
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                child: const Text(
+                  'Consumidor Final',
+                  style: TextStyle(fontSize: 25, color: Colors.white),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  _mostrarDialogoDNI(context);
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                child: const Text('Confirmar', style: TextStyle(fontSize: 25)),
+                child: const Text(
+                  'Cliente Nombrado',
+                  style: TextStyle(fontSize: 25, color: Colors.white),
+                ),
               ),
             ],
           ),
     );
   }
 
-  Future<void> _procesarPedido(BuildContext context) async {
+  void _mostrarDialogoDNI(BuildContext context) {
+    final TextEditingController dniController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (ctx) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: const Text(
+                    'Ingrese DNI del Cliente',
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                  ),
+                  content: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Ingrese el DNI del cliente (13-15 dígitos):',
+                          style: TextStyle(fontSize: 25),
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: dniController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(fontSize: 25),
+                          decoration: InputDecoration(
+                            hintText: 'DNI del cliente',
+                            hintStyle: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 25,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.person,
+                              size: 30,
+                              color: Colors.blue,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 18,
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value?.isEmpty ?? true) {
+                              return 'Por favor ingrese el DNI';
+                            }
+                            if (value!.length < 13 || value.length > 15) {
+                              return 'El DNI debe tener entre 13 y 15 dígitos';
+                            }
+                            if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                              return 'El DNI solo debe contener números';
+                            }
+                            return null;
+                          },
+                        ),
+                        if (isLoading) ...[
+                          const SizedBox(height: 20),
+                          const CircularProgressIndicator(color: Colors.blue),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Buscando cliente...',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed:
+                          isLoading ? null : () => Navigator.of(ctx).pop(),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(fontSize: 25),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed:
+                          isLoading
+                              ? null
+                              : () async {
+                                if (formKey.currentState?.validate() ?? false) {
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+
+                                  try {
+                                    final clienteService = ClienteService();
+                                    final cliente = await clienteService
+                                        .getClienteByDni(dniController.text);
+
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+
+                                    if (cliente != null) {
+                                      Navigator.of(ctx).pop();
+                                      _procesarPedido(
+                                        context,
+                                        clienteId: cliente.id!,
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Cliente no encontrado',
+                                            style: TextStyle(
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Error: ${e.toString()}',
+                                          style: const TextStyle(fontSize: 20),
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: const Text(
+                        'Buscar Cliente',
+                        style: TextStyle(fontSize: 25, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+          ),
+    );
+  }
+
+  Future<void> _procesarPedido(
+    BuildContext context, {
+    required int clienteId,
+  }) async {
     final cartService = Provider.of<CartService>(context, listen: false);
     final authService = AuthService();
     final pedidoService = PedidoService();
@@ -228,6 +400,12 @@ class _CartPageState extends State<CartPage> {
       final mesaId = prefs.getInt('mesa_seleccionada_id');
       final colaboradorId = prefs.getInt('colaborador_id');
 
+      // ✅ LOGS PARA DEBUGGING
+      print('=== VALORES DE CONFIGURACIÓN ===');
+      print('mesaId obtenido: $mesaId');
+      print('colaboradorId obtenido: $colaboradorId');
+      print('clienteId seleccionado: $clienteId');
+
       // Verificar que tenemos los valores necesarios
       if (colaboradorId == null) {
         // Cerrar diálogo de carga
@@ -246,15 +424,19 @@ class _CartPageState extends State<CartPage> {
         return;
       }
 
-      // Crear objeto Pedido a partir del carrito con valores por defecto
+      // Crear objeto Pedido a partir del carrito
       final pedido = cartService.toPedido(
-        clienteId: 1, // Consumidor final
+        clienteId: clienteId,
         colaboradorId: colaboradorId,
         mesaId: mesaId,
         tipoPedidoId: 1, // Restaurante por defecto
         direccionId: null, // Sin dirección
         estadoId: 1,
       );
+
+      // ✅ LOG PARA VERIFICAR EL JSON
+      print('=== PEDIDO GENERADO ===');
+      print('JSON del pedido: ${jsonEncode(pedido.toJson())}');
 
       // Enviar pedido al servidor
       final success = await pedidoService.crearPedido(pedido);
