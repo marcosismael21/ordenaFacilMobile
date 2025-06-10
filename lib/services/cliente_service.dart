@@ -68,7 +68,7 @@ class ClienteService {
     }
   }
 
-  Future<bool> createCliente(Cliente cliente) async {
+  Future<Cliente?> createCliente(Cliente cliente) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/caja'),
@@ -81,13 +81,17 @@ class ClienteService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
-        return responseData['success'] == true;
+
+        if (responseData['success'] == true && responseData['data'] != null) {
+          // Retorna el cliente creado con el ID generado
+          return Cliente.fromJson(responseData['data']);
+        }
       }
 
-      return false;
+      return null;
     } catch (e) {
-      debugPrint('Error al actualizar información del cliente: $e');
-      return false;
+      debugPrint('Error al crear cliente: $e');
+      return null;
     }
   }
 
