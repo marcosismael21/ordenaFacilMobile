@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pedido.dart';
 import 'auth_service.dart';
 
@@ -9,20 +10,37 @@ class PedidoService {
 
   Future<bool> crearPedido(Pedido pedido) async {
     try {
-      final token = await _authService.getToken();
       final response = await http.post(
         Uri.parse(_baseUrl),
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': 'tu_api_key_para_mobile',
-          
         },
         body: json.encode(pedido.toJson()),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
-        return responseData['success'] == true;
+
+        if (responseData['success'] == true) {
+          // Guardar el ID del pedido en SharedPreferences
+          if (responseData['data'] != null &&
+              responseData['data']['id'] != null) {
+            final prefs = await SharedPreferences.getInstance();
+            final pedidoId = responseData['data']['id'];
+
+            // Guardar el ID del pedido (reemplaza el anterior si existe)
+            await prefs.setInt('ultimo_pedido_id', pedidoId);
+
+            // Opcional: También guardar timestamp del pedido
+            await prefs.setString(
+              'ultimo_pedido_fecha',
+              DateTime.now().toIso8601String(),
+            );
+          }
+
+          return true;
+        }
       }
       return false;
     } catch (e) {
@@ -45,7 +63,6 @@ class PedidoService {
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': 'tu_api_key_para_mobile',
-          
         },
       );
 
@@ -73,7 +90,6 @@ class PedidoService {
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': 'tu_api_key_para_mobile',
-          
         },
       );
 

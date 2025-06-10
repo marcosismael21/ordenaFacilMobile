@@ -786,12 +786,6 @@ class _CartPageState extends State<CartPage> {
       final mesaId = prefs.getInt('mesa_seleccionada_id');
       final colaboradorId = prefs.getInt('colaborador_id');
 
-      // ✅ LOGS PARA DEBUGGING
-      print('=== VALORES DE CONFIGURACIÓN ===');
-      print('mesaId obtenido: $mesaId');
-      print('colaboradorId obtenido: $colaboradorId');
-      print('clienteId seleccionado: $clienteId');
-
       // Verificar que tenemos los valores necesarios
       if (colaboradorId == null) {
         // Cerrar diálogo de carga
@@ -819,10 +813,6 @@ class _CartPageState extends State<CartPage> {
         direccionId: null, // Sin dirección
         estadoId: 1,
       );
-
-      // ✅ LOG PARA VERIFICAR EL JSON
-      print('=== PEDIDO GENERADO ===');
-      print('JSON del pedido: ${jsonEncode(pedido.toJson())}');
 
       // Enviar pedido al servidor
       final success = await pedidoService.crearPedido(pedido);
