@@ -79,19 +79,29 @@ class ClienteService {
         body: json.encode(cliente.toJson()),
       );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
+      final Map<String, dynamic> responseData = json.decode(response.body);
 
-        if (responseData['success'] == true && responseData['data'] != null) {
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        if (responseData['data'] != null) {
           // Retorna el cliente creado con el ID generado
           return Cliente.fromJson(responseData['data']);
         }
+      } else {
+        // Si hay un error, lanzar excepción con el mensaje
+        final errorMessage =
+            responseData['message'] ?? 'Error al crear cliente';
+        throw Exception(errorMessage);
       }
 
       return null;
     } catch (e) {
+      // Si es una excepción que ya lanzamos, re-lanzarla
+      if (e is Exception) {
+        rethrow;
+      }
+      // Para otros errores
       debugPrint('Error al crear cliente: $e');
-      return null;
+      throw Exception('Error de conexión al crear cliente');
     }
   }
 

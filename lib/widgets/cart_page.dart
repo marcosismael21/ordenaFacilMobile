@@ -701,7 +701,10 @@ class _CartPageState extends State<CartPage> {
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  'Error: ${e.toString()}',
+                                                  e.toString().replaceAll(
+                                                    'Exception: ',
+                                                    '',
+                                                  ),
                                                   style: const TextStyle(
                                                     fontSize: 20,
                                                   ),
@@ -751,6 +754,137 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
+  Future<void> _procesarPedido(
+    BuildContext context, {
+    required int clienteId,
+  }) async {
+    final cartService = Provider.of<CartService>(context, listen: false);
+    final authService = AuthService();
+    final pedidoService = PedidoService();
+
+    // Usar un BuildContext que sabemos que es válido
+    final navigatorContext = Navigator.of(context).context;
+
+    // Mostrar indicador de carga
+    showDialog(
+      context: navigatorContext,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: const Dialog(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: Colors.blue),
+                  SizedBox(height: 20),
+                  Text("Procesando pedido...", style: TextStyle(fontSize: 30)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    try {
+      // Obtener valores de configuración desde SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final mesaId = prefs.getInt('mesa_seleccionada_id');
+      final colaboradorId = prefs.getInt('colaborador_id');
+
+      // Verificar que tenemos los valores necesarios
+      if (colaboradorId == null) {
+        // Cerrar diálogo de carga usando el contexto guardado
+        Navigator.of(navigatorContext).pop();
+
+        if (navigatorContext.mounted) {
+          ScaffoldMessenger.of(navigatorContext).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Error: No hay colaborador asignado. Configure primero.',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Crear objeto Pedido a partir del carrito
+      final pedido = cartService.toPedido(
+        clienteId: clienteId,
+        colaboradorId: colaboradorId,
+        mesaId: mesaId,
+        tipoPedidoId: 1, // Restaurante por defecto
+        direccionId: null, // Sin dirección
+        estadoId: 1,
+      );
+
+      // Enviar pedido al servidor
+      final success = await pedidoService.crearPedido(pedido);
+
+      // Cerrar diálogo de carga
+      Navigator.of(navigatorContext).pop();
+
+      if (success) {
+        // Vaciar el carrito
+        cartService.clearCart();
+
+        // Mostrar mensaje de éxito
+        if (navigatorContext.mounted) {
+          ScaffoldMessenger.of(navigatorContext).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '¡Pedido realizado con éxito!',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navegar a la pantalla de inicio o de pedidos
+          Navigator.of(
+            navigatorContext,
+          ).pushNamedAndRemoveUntil('/home', (route) => false);
+        }
+      } else {
+        // Mostrar mensaje de error
+        if (navigatorContext.mounted) {
+          ScaffoldMessenger.of(navigatorContext).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Error al realizar el pedido. Inténtalo de nuevo.',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Cerrar diálogo de carga
+      Navigator.of(navigatorContext).pop();
+
+      // Mostrar mensaje de error
+      if (navigatorContext.mounted) {
+        ScaffoldMessenger.of(navigatorContext).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: ${e.toString()}',
+              style: const TextStyle(fontSize: 20),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /*
   Future<void> _procesarPedido(
     BuildContext context, {
     required int clienteId,
@@ -871,7 +1005,7 @@ class _CartPageState extends State<CartPage> {
         );
       }
     }
-  }
+  }*/
 }
 
 class CartItemWidget extends StatelessWidget {
