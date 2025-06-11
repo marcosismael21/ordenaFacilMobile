@@ -53,7 +53,7 @@ class PedidoResumen {
       dni: json['dni'] ?? '',
       colaboradorId: json['colaboradorId'],
       tipoPedidoId: json['tipoPedidoId'],
-      direccionId: json['direccionId'],
+      direccionId: json['direccionId'] ?? 0,
       subtotal: double.parse(json['subtotal'].toString()),
       impuesto: double.parse(json['impuesto'].toString()),
       descuento: double.parse(json['descuento'].toString()),
@@ -90,7 +90,7 @@ class PedidoDetalle {
   factory PedidoDetalle.fromJson(Map<String, dynamic> json) {
     return PedidoDetalle(
       id: json['id'],
-      platilloNombre: json['platilloNombre'] ?? json['nombre'] ?? '',
+      platilloNombre: json['nombrePlatillo'] ?? json['nombre'] ?? '',
       cantidad: json['cantidad'] ?? 1,
       precioUnitario: double.parse(
         (json['precioUnitario'] ?? json['precio'] ?? 0).toString(),
